@@ -1,37 +1,112 @@
-## Welcome to GitHub Pages
+<!DOCTYPE html>
+<html lang="en">
 
-You can use the [editor on GitHub](https://github.com/lp207663436/qiuqiu/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        canvas {
+            border: 1px solid #000;
+            background-color: black;
+        }
+    </style>
+</head>
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+<body>
+    <canvas id="canvas" width="1900" height="1080"></canvas>
+    <script>
+        // 得到canvas画布
+        var canvas = document.getElementById('canvas');
+        // 画布没有什么用，必须用画布创建渲染上下文才行
+        var ctx = canvas.getContext('2d');
 
-### Markdown
+        // 全部颜色数组
+        var allcolor = ['#66CCCC', '#CCFF66', '#FF99CC', '#FF9900', '#CCFF00', '#66CCCC', '#FFFF66'];
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+        // 小球类
+        function Ball(x, y) {
+            // 圆心
+            this.x = x;
+            this.y = y;
+            // 从数组中随机选择一个颜色
+            this.color = allcolor[parseInt(Math.random () * allcolor.length)];
+            this.r = 20;
+            // 透明度
+            this.opacity = 1;
+            // 随机它的x增量，不能随机出0、0
+            do {
+                this.dx = parseInt(Math.random() * 8) - 4;
+                this.dy = parseInt(Math.random() * 8) - 4;
+            } while (this.dx == 0 && this.dy == 0);
 
-```markdown
-Syntax highlighted code block
+            ballArr.push(this);
+        }
+        Ball.prototype.update = function () {
+            // 改变自己的半径
+            this.r += 0.1;
+            // 改变自己的透明度
+            this.opacity -= 0.01;
+            if (this.opacity <= 0) {
+                // 如果透明度小于了0，就要让它自己把自己从数组中删除
+                for (var i = 0; i < ballArr.length; i++) {
+                    // 遍历数组，寻找哪一项是自己的实例
+                    if (ballArr[i] == this) {
+                        ballArr.splice(i, 1);
+                    }
+                }
+            }
 
-# Header 1
-## Header 2
-### Header 3
+            // 改变自己的x、y（圆心）
+            this.x += this.dx;
+            this.y += this.dy;
+        }
+        Ball.prototype.render = function () {
+            // 开始绘制
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2, true);
+            ctx.fillStyle = this.color;
 
-- Bulleted
-- List
+            // 改变透明度，固定写法
+            // 保存当前画布状态
+            ctx.save();
+            // 改变透明度
+            ctx.globalAlpha = this.opacity;
+            // 填充
+            ctx.fill();
+            // 恢复，不影响别的小球
+            ctx.restore();
+        }
 
-1. Numbered
-2. List
+        // 小球数组
+        var ballArr = [];
+        // 帧编号
+        var f = 0;
+        // 定时器，不管有多少小球，定时器只有1个。
+        setInterval(function () {
+            // 清屏
+            ctx.clearRect(0, 0, 1900, 1080);
 
-**Bold** and _Italic_ and `Code` text
+            // 帧编号加1
+            f++;
+            // 显示帧编号
+            ctx.font = '25px 宋体';
+            ctx.fillText(f, 10, 20);
 
-[Link](url) and ![Image](src)
-```
+            // 遍历数组，调用小球的update方法和render方法
+            for (let i = 0; i < ballArr.length; i++) {
+                ballArr[i].update();
+                // 写成短路的目的是：update方法中可能删除了这个小球，所以这里要判断一下小球仍然存在
+                ballArr[i] && ballArr[i].render();
+            }
+        }, 20);
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+        // 鼠标事件
+        canvas.onmousemove = function (e) {
+            // 用鼠标的指针位置实例出小球
+            new Ball(e.offsetX, e.offsetY);
+        };
+    </script>
+</body>
 
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/lp207663436/qiuqiu/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+</html>
